@@ -304,39 +304,23 @@ export default function VideoMeetComponent() {
                     }
 
                     // Wait for their video stream
-                    connections[socketListId].onaddstream = (event) => {
-                        console.log("BEFORE:", videoRef.current);
-                        console.log("FINDING ID: ", socketListId);
+                   // REPLACE WITH THIS NEW BLOCK
+                    connections[socketListId].ontrack = (event) => {
+                        // event.streams[0] contains the media stream with both video and audio
+                        const remoteStream = event.streams[0];
 
-                        let videoExists = videoRef.current.find(video => video.socketId === socketListId);
-
-                        if (videoExists) {
-                            console.log("FOUND EXISTING");
-
-                            // Update the stream of the existing video
-                            setVideos(videos => {
-                                const updatedVideos = videos.map(video =>
-                                    video.socketId === socketListId ? { ...video, stream: event.stream } : video
-                                );
-                                videoRef.current = updatedVideos;
-                                return updatedVideos;
-                            });
-                        } else {
-                            // Create a new video
-                            console.log("CREATING NEW");
-                            let newVideo = {
-                                socketId: socketListId,
-                                stream: event.stream,
-                                autoplay: true,
-                                playsinline: true
-                            };
-
-                            setVideos(videos => {
-                                const updatedVideos = [...videos, newVideo];
-                                videoRef.current = updatedVideos;
-                                return updatedVideos;
-                            });
-                        }
+                        // Use a functional update to prevent issues with stale state
+                        setVideos(prevVideos => {
+                            // Check if we already have a video for this user
+                            if (prevVideos.some(video => video.socketId === socketListId)) {
+                                // If so, no need to add again, WebRTC handles stream updates
+                                return prevVideos;
+                            }
+                            // If it's a new user, add their video and stream to the array
+                            const newVideos = [...prevVideos, { socketId: socketListId, stream: remoteStream }];
+                            videoRef.current = newVideos; // Keep the ref in sync
+                            return newVideos;
+                        });
                     };
 
 
@@ -530,10 +514,10 @@ export default function VideoMeetComponent() {
                     <video className={styles.meetUserVideo} ref={localVideoref} autoPlay muted></video>
 
                     <div className={styles.conferenceView}>
+                        // REPLACE WITH THIS
                         {videos.map((video) => (
                             <div key={video.socketId}>
                                 <video
-
                                     data-socket={video.socketId}
                                     ref={ref => {
                                         if (ref && video.stream) {
@@ -541,10 +525,10 @@ export default function VideoMeetComponent() {
                                         }
                                     }}
                                     autoPlay
+                                    playsInline // <-- ADD THIS LINE
                                 >
                                 </video>
                             </div>
-
                         ))}
 
                     </div>
