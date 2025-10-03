@@ -11,7 +11,7 @@ import userRoutes from "./routes/users.routes.js";
 const app = express();
 
 const corsOptions = {
-    origin: "https://zoom-call-frontend-hl2h.onrender.com/",
+    origin: "https://zoom-call-frontend-hl2h.onrender.com",
     optionsSuccessStatus: 200
 };
 
