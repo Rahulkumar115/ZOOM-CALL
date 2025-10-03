@@ -18,12 +18,7 @@ var connections = {};
 
 const peerConfigConnections = {
   "iceServers": [
-    { "urls": "stun:stun.l.google.com:19302" },
-    {
-      "urls": "turn:global.turn.twilio.com:3478",
-      "username": process.env.REACT_APP_TWILIO_ACCOUNT_SID,
-      "credential": process.env.REACT_APP_TWILIO_AUTH_TOKEN
-    }
+    { "urls": "stun:stun.l.google.com:19302" }
   ]
 };
 
