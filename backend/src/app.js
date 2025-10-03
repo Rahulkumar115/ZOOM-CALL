@@ -9,12 +9,20 @@ import cors from "cors";
 import userRoutes from "./routes/users.routes.js";
 
 const app = express();
+
+const corsOptions = {
+    origin: "https://zoom-call-frontend-hl2h.onrender.com/",
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+
 const server = createServer(app);
 const io = connectToSocket(server);
 const url = process.env.MONGO_URL;
 
 app.set("port", (process.env.PORT || 8000));
-app.use(cors());
 app.use(express.json({limit: "40kb"}));
 app.use(express.urlencoded({limit: "40kb", extended: true}));
 
