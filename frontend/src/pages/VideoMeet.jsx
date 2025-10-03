@@ -63,11 +63,31 @@ export default function VideoMeetComponent() {
 
     // }
 
-    useEffect(() => {
-        console.log("HELLO")
-        getPermissions();
+    const [peerConfigConnections, setPeerConfigConnections] = useState({ iceServers: [] });
 
-    })
+    useEffect(() => {
+        fetchIceServers();
+        getPermissions();
+    }, []);
+
+    const fetchIceServers = async () => {
+        try {
+            const response = await fetch(`${server_url}/api/ice-servers`);
+            const iceServers = await response.json();
+            if (iceServers.length > 0) {
+                setPeerConfigConnections({ iceServers });
+            } else {
+                setPeerConfigConnections({
+                    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch ICE servers:', error);
+            setPeerConfigConnections({
+                iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+            });
+        }
+    };
 
     let getDislayMedia = () => {
         if (screen) {
