@@ -26,7 +26,7 @@ function HomeComponent() {
 
                 <div style={{ display: "flex", alignItems: "center" }}>
 
-                    <h2>Apna Video Call</h2>
+                    <h3>CALL U</h3>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center" }}>
