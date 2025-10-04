@@ -119,16 +119,54 @@ export default function VideoMeetComponent() {
     }
 };
 
-    let getDislayMedia = () => {
-        if (screen) {
-            if (navigator.mediaDevices.getDisplayMedia) {
-                navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
-                    .then(getDislayMediaSuccess)
-                    .then((stream) => { })
-                    .catch((e) => console.log(e))
-            }
+// ADD THIS NEW BLOCK OF CODE
+
+// This helper function tells every connected peer to display the new video track
+const replaceTrack = (stream) => {
+    // Update your local video preview
+    window.localStream = stream;
+    localVideoref.current.srcObject = stream;
+
+    // Get the new video track
+    const newVideoTrack = stream.getVideoTracks()[0];
+
+    // Go through all active connections and replace the video track
+    for (let peerId in connections) {
+        const sender = connections[peerId].getSenders().find(s => s.track.kind === 'video');
+        if (sender) {
+            sender.replaceTrack(newVideoTrack);
         }
     }
+};
+
+const handleScreen = () => {
+    if (!screen) { // If screen share is OFF, we want to turn it ON
+        navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+            .then(screenStream => {
+                setScreen(true);
+                replaceTrack(screenStream);
+
+                // Add a listener for when the user clicks the browser's "Stop sharing" button
+                screenStream.getVideoTracks()[0].onended = () => {
+                    setScreen(false);
+                    // When they stop, switch back to their camera
+                    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                        .then(cameraStream => {
+                            replaceTrack(cameraStream);
+                        });
+                };
+            })
+            .catch(e => console.log("Error getting display media:", e));
+    } else { // If screen share is ON, we want to turn it OFF
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(cameraStream => {
+                setScreen(false);
+                replaceTrack(cameraStream);
+            });
+    }
+};
+
+    
 
     const getPermissions = async () => {
         try {
@@ -251,50 +289,6 @@ export default function VideoMeetComponent() {
                 tracks.forEach(track => track.stop())
             } catch (e) { }
         }
-    }
-
-
-
-
-
-    let getDislayMediaSuccess = (stream) => {
-        console.log("HERE")
-        try {
-            window.localStream.getTracks().forEach(track => track.stop())
-        } catch (e) { console.log(e) }
-
-        window.localStream = stream
-        localVideoref.current.srcObject = stream
-
-        for (let id in connections) {
-            if (id === socketIdRef.current) continue
-
-            connections[id].addStream(window.localStream)
-
-            connections[id].createOffer().then((description) => {
-                connections[id].setLocalDescription(description)
-                    .then(() => {
-                        socketRef.current.emit('signal', id, JSON.stringify({ 'sdp': connections[id].localDescription }))
-                    })
-                    .catch(e => console.log(e))
-            })
-        }
-
-        stream.getTracks().forEach(track => track.onended = () => {
-            setScreen(false)
-
-            try {
-                let tracks = localVideoref.current.srcObject.getTracks()
-                tracks.forEach(track => track.stop())
-            } catch (e) { console.log(e) }
-
-            let blackSilence = (...args) => new MediaStream([black(...args), silence()])
-            window.localStream = blackSilence()
-            localVideoref.current.srcObject = window.localStream
-
-            getUserMedia()
-
-        })
     }
 
     let gotMessageFromServer = (fromId, message) => {
@@ -440,15 +434,6 @@ export default function VideoMeetComponent() {
         // getUserMedia();
     }
 
-    useEffect(() => {
-        if (screen !== undefined) {
-            getDislayMedia();
-        }
-    }, [screen])
-    let handleScreen = () => {
-        setScreen(!screen);
-    }
-
     let handleEndCall = () => {
         try {
             let tracks = localVideoref.current.srcObject.getTracks()
@@ -477,8 +462,6 @@ export default function VideoMeetComponent() {
             setNewMessages((prevNewMessages) => prevNewMessages + 1);
         }
     };
-
-
 
     let sendMessage = () => {
         console.log(socketRef.current);
