@@ -59,7 +59,7 @@ export default function VideoMeetComponent() {
 
     let [screen, setScreen] = useState();
 
-    let [showModal, setModal] = useState(true);
+    let [showModal, setModal] = useState(false);
 
     let [screenAvailable, setScreenAvailable] = useState();
 
@@ -539,8 +539,8 @@ export default function VideoMeetComponent() {
                             <h3>Chat</h3>
                             <div className={styles.chattingDisplay}>
                                 {messages.length > 0 ? messages.map((item, index) => (
-                                    <div key={index} style={{ marginBottom: "1rem" }}>
-                                        <p style={{ fontWeight: "bold", margin: 0 }}>{item.sender}</p>
+                                    <div key={index} className={item.sender === username ? styles.myMessage : styles.otherMessage}>
+                                        <p style={{ fontWeight: "bold", margin: 0 }}>{item.sender === username ? 'You': item.sender}</p>
                                         <p style={{ margin: 0 }}>{item.data}</p>
                                     </div>
                                 )) : <p>No messages yet.</p>}

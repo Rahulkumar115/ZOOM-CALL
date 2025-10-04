@@ -1,6 +1,3 @@
-/* Filename: videoComponent.module.css */
-
-/* --- Lobby Styles --- */
 .lobbyContainer {
     display: flex;
     flex-direction: column;
@@ -94,14 +91,118 @@
 }
 .meetContainer:hover .buttonContainers { opacity: 1; }
 
-/* --- Chat Room --- */
-.chatRoom { position: fixed; top: 0; right: 0; width: 350px; height: 100vh; background: #fff; z-index: 1001; display: flex; flex-direction: column; padding: 1rem; box-shadow: -2px 0 10px rgba(0,0,0,0.1); box-sizing: border-box; }
-.chatContainer { display: flex; flex-direction: column; height: 100%; }
-.chattingDisplay { flex-grow: 1; overflow-y: auto; margin-bottom: 1rem; }
-.chattingArea { display: flex; gap: 0.5rem; }
+/* --- NEW CHAT ROOM STYLES (ZOOM THEME) --- */
+.chatRoom {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 350px;
+  height: 100vh;
+  background-color: #242424; 
+  color: #fff; 
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.5);
+  box-sizing: border-box;
+  transition: transform 0.3s ease-in-out;
+}
 
-/* Adjust main content when chat is open */
-.mainContentWithChat {
-  padding-right: 350px; /* Make space for the chat panel */
-  transition: padding-right 0.3s ease;
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chatContainer h3 {
+  text-align: center;
+  margin-top: 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #444;
+}
+
+.chattingDisplay {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.otherMessage {
+  background-color: #3c4043;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  max-width: 80%;
+  align-self: flex-start;
+}
+
+.myMessage {
+  background-color: #0b5cff; 
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  max-width: 80%;
+  align-self: flex-end; 
+}
+
+.chattingArea {
+  display: flex;
+  gap: 0.5rem;
+}
+
+
+.chattingArea > div {
+  background-color: #3c4043;
+  border-radius: 4px;
+}
+.chattingArea input {
+  color: white; 
+}
+
+/* --- Mobile Responsive Rules --- */
+@media (max-width: 768px) {
+  
+    .buttonContainers {
+    opacity: 1;
+    background-color: #1a1a1a; 
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: none; 
+    border-radius: 0; 
+    padding: 1rem;
+    justify-content: space-around; 
+    box-sizing: border-box;
+  }
+
+  .galleryView {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.5rem; 
+    padding: 0.5rem;
+    padding-bottom: 90px; 
+  }
+  
+  .filmStrip {
+    overflow-x: auto; 
+    justify-content: flex-start; 
+    padding-bottom: 90px; 
+  }
+
+  .participantName {
+    font-size: 12px;
+    padding: 2px 6px;
+  }
+
+  .chatRoom {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    z-index: 1002; 
+  }
+
+  .mainContentWithChat {
+    padding-right: 0;
+  }
 }
