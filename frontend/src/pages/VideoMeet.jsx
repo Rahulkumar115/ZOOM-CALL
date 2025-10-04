@@ -96,6 +96,17 @@ export default function VideoMeetComponent() {
     }
 };
 
+const renegotiatePeers = () => {
+  for (let peerId in connections) {
+    connections[peerId].createOffer()
+      .then(offer => connections[peerId].setLocalDescription(offer))
+      .then(() => {
+        socketRef.current.emit('signal', peerId, JSON.stringify({'sdp': connections[peerId].localDescription}));
+      })
+      .catch(e => console.error('Error renegotiating:', e));
+  }
+};
+
   const replaceTrack = (stream) => {
     window.localStream = stream;
     localVideoref.current.srcObject = stream;
@@ -107,6 +118,7 @@ export default function VideoMeetComponent() {
         sender.replaceTrack(newVideoTrack);
       }
     }
+    renegotiatePeers();
   };
 
   const handleScreen = () => {
