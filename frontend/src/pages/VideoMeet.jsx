@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import io from "socket.io-client";
-import { Badge, IconButton, TextField } from '@mui/material';
+import { Badge, IconButton, TextField, Container, Box, Stack } from '@mui/material';
 import { Button } from '@mui/material';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff'
@@ -20,6 +20,26 @@ const peerConfigConnections = {
   "iceServers": [
     { "urls": "stun:stun.l.google.com:19302" }
   ]
+};
+
+// Add this helper component before your main component
+const VideoTile = ({ participant, onClick }) => {
+    const videoRef = useRef();
+
+    useEffect(() => {
+        if (videoRef.current && participant.stream) {
+            videoRef.current.srcObject = participant.stream;
+        }
+    }, [participant.stream]);
+
+    return (
+        <div className={styles.videoTile} onClick={() => onClick(participant)}>
+            <video ref={videoRef} autoPlay playsInline muted={participant.isLocal} />
+            <div className={styles.participantName}>
+                {participant.name} {participant.isLocal && '(You)'}
+            </div>
+        </div>
+    );
 };
 
 export default function VideoMeetComponent() {
@@ -57,6 +77,8 @@ export default function VideoMeetComponent() {
 
     let [videos, setVideos] = useState([])
 
+    const [pinnedSocketId, setPinnedSocketId] = useState(null);
+
     // TODO
     // if(isChrome() === false) {
 
@@ -88,6 +110,14 @@ export default function VideoMeetComponent() {
             });
         }
     };
+
+    const handlePin = (participant) => {
+    if (pinnedSocketId === participant.socketId) {
+        setPinnedSocketId(null); // Unpin if clicking the same person
+    } else {
+        setPinnedSocketId(participant.socketId); // Pin the new person
+    }
+};
 
     let getDislayMedia = () => {
         if (screen) {
@@ -466,108 +496,79 @@ export default function VideoMeetComponent() {
 
 
     return (
-        <div>
-
-            {askForUsername === true ?
-
-                <div>
-
-
-                    <h2>Enter into Lobby </h2>
+    <div>
+        {askForUsername === true ? (
+            // --- IMPROVED LOBBY UI ---
+            <div className={styles.lobbyContainer}>
+                <h2>Enter into Lobby</h2>
+                <video ref={localVideoref} autoPlay muted className={styles.lobbyVideoPreview}></video>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <TextField id="outlined-basic" label="Username" value={username} onChange={e => setUsername(e.target.value)} variant="outlined" />
-                    <Button variant="contained" onClick={connect}>Connect</Button>
+                    <Button variant="contained" onClick={connect} disabled={!username}>Connect</Button>
+                </Stack>
+            </div>
+        ) : (
+            // --- NEW ZOOM-LIKE LAYOUT ---
+            <div className={styles.meetContainer}>
+                <div className={showModal ? styles.mainContentWithChat : ""}>
+                    {(() => {
+                        // This creates a temporary array for rendering without changing your state logic
+                        const allParticipants = [
+                            { socketId: 'local', stream: window.localStream, name: username, isLocal: true },
+                            ...videos.map(v => ({...v, name: `User-${v.socketId.substring(0,4)}`}))
+                        ];
+                        const pinnedParticipant = allParticipants.find(p => p.socketId === pinnedSocketId);
+                        const otherParticipants = allParticipants.filter(p => p.socketId !== pinnedSocketId);
 
-
-                    <div>
-                        <video ref={localVideoref} autoPlay muted></video>
-                    </div>
-
-                </div> :
-
-
-                <div className={styles.meetVideoContainer}>
-
-                    {showModal ? <div className={styles.chatRoom}>
-
-                        <div className={styles.chatContainer}>
-                            <h1>Chat</h1>
-
-                            <div className={styles.chattingDisplay}>
-
-                                {messages.length !== 0 ? messages.map((item, index) => {
-
-                                    console.log(messages)
-                                    return (
-                                        <div style={{ marginBottom: "20px" }} key={index}>
-                                            <p style={{ fontWeight: "bold" }}>{item.sender}</p>
-                                            <p>{item.data}</p>
-                                        </div>
-                                    )
-                                }) : <p>No Messages Yet</p>}
-
-
+                        return pinnedSocketId ? (
+                            // SPEAKER VIEW (if someone is pinned)
+                            <div className={styles.speakerView}>
+                                <div className={styles.mainVideo}><VideoTile participant={pinnedParticipant} onClick={handlePin} /></div>
+                                <div className={styles.filmStrip}>{otherParticipants.map(p => <VideoTile key={p.socketId} participant={p} onClick={handlePin} />)}</div>
                             </div>
+                        ) : (
+                            // GALLERY VIEW (default)
+                            <div className={styles.galleryView}>{allParticipants.map(p => <VideoTile key={p.socketId} participant={p} onClick={handlePin} />)}</div>
+                        );
+                    })()}
+                </div>
 
+                {showModal && (
+                    <div className={styles.chatRoom}>
+                        <div className={styles.chatContainer}>
+                            <h3>Chat</h3>
+                            <div className={styles.chattingDisplay}>
+                                {messages.length > 0 ? messages.map((item, index) => (
+                                    <div key={index} style={{ marginBottom: "1rem" }}>
+                                        <p style={{ fontWeight: "bold", margin: 0 }}>{item.sender}</p>
+                                        <p style={{ margin: 0 }}>{item.data}</p>
+                                    </div>
+                                )) : <p>No messages yet.</p>}
+                            </div>
                             <div className={styles.chattingArea}>
-                                <TextField value={message} onChange={(e) => setMessage(e.target.value)} id="outlined-basic" label="Enter Your chat" variant="outlined" />
+                                <TextField value={message} onChange={(e) => setMessage(e.target.value)} label="Message" variant="outlined" size="small" fullWidth />
                                 <Button variant='contained' onClick={sendMessage}>Send</Button>
                             </div>
-
-
                         </div>
-                    </div> : <></>}
+                    </div>
+                )}
 
-
-                    <div className={styles.buttonContainers}>
-                        <IconButton onClick={handleVideo} style={{ color: "white" }}>
-                            {(video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
-                        </IconButton>
-                        <IconButton onClick={handleEndCall} style={{ color: "red" }}>
-                            <CallEndIcon  />
-                        </IconButton>
-                        <IconButton onClick={handleAudio} style={{ color: "white" }}>
-                            {audio === true ? <MicIcon /> : <MicOffIcon />}
-                        </IconButton>
-
-                        {screenAvailable === true ?
+                <div className={styles.buttonContainers}>
+                    <IconButton onClick={handleVideo} style={{ color: "white" }}>{(video === true) ? <VideocamIcon /> : <VideocamOffIcon />}</IconButton>
+                    <IconButton onClick={handleEndCall} style={{ color: "red" }}> <CallEndIcon /> </IconButton>
+                    <IconButton onClick={handleAudio} style={{ color: "white" }}>{audio === true ? <MicIcon /> : <MicOffIcon />}</IconButton>
+                    {screenAvailable === true ?
                             <IconButton onClick={handleScreen} style={{ color: "white" }}>
                                 {screen === true ? <ScreenShareIcon /> : <StopScreenShareIcon />}
                             </IconButton> : <></>}
-
-                        <Badge badgeContent={newMessages} max={999} color='orange'>
-                            <IconButton onClick={() => setModal(!showModal)} style={{ color: "white" }}>
-                                <ChatIcon />                        </IconButton>
-                        </Badge>
-
-                    </div>
-
-
-                    <video className={styles.meetUserVideo} ref={localVideoref} autoPlay muted></video>
-
-                    <div className={styles.conferenceView}>
-                        {videos.map((video) => (
-                            <div key={video.socketId}>
-                                <video
-
-                                    data-socket={video.socketId}
-                                    ref={ref => {
-                                        if (ref && video.stream) {
-                                            ref.srcObject = video.stream;
-                                        }
-                                    }}
-                                    autoPlay
-                                >
-                                </video>
-                            </div>
-
-                        ))}
-
-                    </div>
-
+                    <Badge badgeContent={newMessages} color="primary">
+                        <IconButton onClick={() => { setModal(!showModal); if (!showModal) setNewMessages(0); }} style={{ color: "white" }}>
+                            <ChatIcon />
+                        </IconButton>
+                    </Badge>
                 </div>
-
-            }
-
-        </div>
-    )
+            </div>
+        )}
+    </div>
+);
 }

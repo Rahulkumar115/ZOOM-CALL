@@ -1,79 +1,107 @@
-.meetVideoContainer {
-  position: relative;
-  height: 100vh;
-  background: linear-gradient(135deg, #001643, #283593);
-  padding: 16px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+/* Filename: videoComponent.module.css */
+
+/* --- Lobby Styles --- */
+.lobbyContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+.lobbyVideoPreview {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background-color: #202124;
+    transform: scaleX(-1);
 }
 
-.meetUserVideo {
-  position: fixed;
-  bottom: 15px;
-  left: 15px;
-  width: 200px;
-  height: 150px;
-  border-radius: 12px;
-  border: 3px solid #4caf50;
-  object-fit: cover;
-  z-index: 1000;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
-}
-
-.buttonContainers {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: rgba(1, 4, 48, 0.9);
-  display: flex;
-  justify-content: center;
-  gap: 25px;
-  padding: 10px 0;
-  z-index: 1000;
-}
-.buttonContainers svg {
-  font-size: 2.5rem;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-.buttonContainers svg:hover {
-  color: #82b1ff;
-}
-
-.conferenceView {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  padding: 10px 0;
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.conferenceView video {
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  object-fit: cover;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.chatRoom {
-    position: absolute;
-    height: 90vh;
-    right: 0;
-    background: white;
-    border-radius: 10px;
-    width: 30vw;
-    padding-inline: 20px;
-}
-
-.chatContainer {
+/* --- Main Meet Container --- */
+.meetContainer {
     position: relative;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    background-color: #202124;
+    overflow: hidden;
 }
 
-.chattingArea {
+/* --- Gallery & Speaker Views --- */
+.galleryView {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    padding-bottom: 100px; /* Space for controls */
+    box-sizing: border-box;
+}
+
+.speakerView {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding-bottom: 100px; /* Space for controls */
+    box-sizing: border-box;
+}
+.mainVideo {
+    flex-grow: 1;
+    height: 85%;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.mainVideo > div { width: 100%; height: 100%; }
+.filmStrip {
+    height: 15%;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0 1rem 1rem 1rem;
+    box-sizing: border-box;
+}
+.filmStrip > div { height: 100%; width: auto; aspect-ratio: 16/9; }
+
+/* --- Reusable Video Tile --- */
+.videoTile {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #3c4043;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+.videoTile:hover { border-color: #8ab4f8; }
+.videoTile video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.participantName { position: absolute; bottom: 0; left: 0; background-color: rgba(0, 0, 0, 0.6); color: white; padding: 6px 10px; font-size: 14px; border-top-right-radius: 8px; }
+
+/* --- Floating Controls Container --- */
+.buttonContainers {
     position: absolute;
-    bottom: 0;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(60, 64, 67, 0.9);
+    border-radius: 50px;
+    padding: 10px 20px;
+    display: flex;
+    gap: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1000;
+}
+.meetContainer:hover .buttonContainers { opacity: 1; }
+
+/* --- Chat Room --- */
+.chatRoom { position: fixed; top: 0; right: 0; width: 350px; height: 100vh; background: #fff; z-index: 1001; display: flex; flex-direction: column; padding: 1rem; box-shadow: -2px 0 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+.chatContainer { display: flex; flex-direction: column; height: 100%; }
+.chattingDisplay { flex-grow: 1; overflow-y: auto; margin-bottom: 1rem; }
+.chattingArea { display: flex; gap: 0.5rem; }
+
+/* Adjust main content when chat is open */
+.mainContentWithChat {
+  padding-right: 350px; /* Make space for the chat panel */
+  transition: padding-right 0.3s ease;
 }
