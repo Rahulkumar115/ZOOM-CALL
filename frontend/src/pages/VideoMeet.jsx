@@ -33,7 +33,7 @@ const VideoTile = ({ participant, onClick }) => {
     }, [participant.stream]);
 
     return (
-        <div className={styles.videoTile} onClick={() => onClick(participant)}>
+        <div className={styles.videoTile} onClick={() => onClick(participant)} onTouchEnd={() => onClick(participant)}>
             <video ref={videoRef} autoPlay playsInline muted={participant.isLocal} />
             <div className={styles.participantName}>
                 {participant.name} {participant.isLocal && '(You)'}
